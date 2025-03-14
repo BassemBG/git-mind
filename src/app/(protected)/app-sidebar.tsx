@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { api } from "@/trpc/react"
+import useProject from "@/hooks/use-project"
 
 // Menu items.
 const items = [
@@ -44,32 +46,10 @@ const items = [
   },
 ]
 
-const projects = [
-    {
-      name: "Project 1",
-      url: "/project/",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Project 2",
-      url: "/qa",
-      icon: Bot,
-    },
-    {
-      name: "Project 3",
-      url: "/meetings",
-      icon: Presentation,
-    },
-    {
-      name: "Project 4",
-      url: "/billing",
-      icon: CreditCard,
-    },
-  ]
-
 export function AppSidebar() {
     const pathname = usePathname();
     const { open } = useSidebar();
+    const {projects, selectedProjectId, setSelectedProjectId} = useProject();
   return (
     <Sidebar collapsible="icon" variant="floating">
         <SidebarHeader>
@@ -109,17 +89,18 @@ export function AppSidebar() {
                 <SidebarGroupLabel>Your Projects</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
-                    {projects.map((project) => (
+                    {projects?.map((project) => (
                         <SidebarMenuItem key={project.name}>
-                        <SidebarMenuButton asChild>
+                        <SidebarMenuButton asChild onClick={ () => {
+                            setSelectedProjectId(project.id)
+                          }}>
                             {/* Project menu item */}
                             <div>
                                 {/* Project Icon */}
                                 <div className={cn(
                                     'rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-primary p-1',
                                     {
-                                        'bg-primary text-white': true
-                                        // 'bg-primary text-white': projects.id === projects.id
+                                        'bg-primary text-white': project.id === selectedProjectId
                                     }
                                 )}>
                                     {project.name[0]}
