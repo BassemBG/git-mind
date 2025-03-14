@@ -6,7 +6,7 @@ import React from 'react'
 function DashboardPage() {
     const { user } = useUser();
   return (
-    <div>Welcome { user?.firstName + " " + user?.lastName} </div>
+    <div>Welcome { user?.firstName + " " + user?.lastName} !</div>
   )
 }
 
