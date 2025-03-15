@@ -12,6 +12,7 @@ function DashboardPage() {
     const { selectedProject } = useProject();
   return (
     <div>
+      {selectedProject?.id}
         <div className="flex items-center justify-center md:justify-between flex-wrap gap-y-4">
           {/* Github Link */}
             <div className='flex items-center bg-primary w-fit text-white rounded-md px-4 py-2'>
