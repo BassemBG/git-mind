@@ -95,7 +95,7 @@ export function AppSidebar() {
                             setSelectedProjectId(project.id)
                           }}>
                             {/* Project menu item */}
-                            <div>
+                            <div className="hover:cursor-pointer">
                                 {/* Project Icon */}
                                 <div className={cn(
                                     'rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-primary p-1',
