@@ -2,12 +2,21 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-2.0-flash",
 });
 
+
 export const aiSummariseCommit = async (diff: string) => {
-  const response = await model.generateContent([
-    ` You are an expert programmer, and you are trying to summarize a git diff.
+  console.log("\nAI generating Summary...\n");
+
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("AI summarization timed out")), 30000) // 30s timeout
+  );
+
+  try {
+    const response = (await Promise.race([
+      model.generateContent([
+        `You are an expert programmer, and you are trying to summarize a git diff.
 Reminders about the git diff format:
 For every file, there are a few metadata lines, like (for example):
 
@@ -38,12 +47,15 @@ The last comment does not include the file names,
 because there were more than two relevant files in the hypothetical commit.
 Do not include parts of the example in your summary.
 It is given only as an example of appropriate comments.`,
-    `Please summarise the following diff file: \n\n${diff}`,
-  ]);
+        `Please summarise the following diff file: \n\n${diff}`,
+      ]),
+      timeout,
+    ])) as { response: { text: () => string } }; // Explicitly cast response type
 
-  if(!response){
-    throw new Error("Error generating commit's summary.")
+    console.log(`\nResponse from AI: ${response.response.text()}\n`);
+    return response.response.text();
+  } catch (error) {
+    console.error("AI summarization failed:", error);
+    return ""; // Return empty summary on failure
   }
-
-  return response.response.text();
 };

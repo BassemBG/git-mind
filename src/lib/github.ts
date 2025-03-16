@@ -36,7 +36,7 @@ export const getCommitHashes = async (
       new Date(a.commit.author.date).getTime(),
   ) as any[];
 
-  return sortedCommits.slice(0, 7).map((commit: any) => ({
+  return sortedCommits.slice(0, 5).map((commit: any) => ({
     commitHash: commit.sha as string,
     commitMessage: commit.commit.message ?? ("" as string),
     commitAuthorName: commit.commit?.author.name ?? ("" as string),
@@ -47,40 +47,37 @@ export const getCommitHashes = async (
 
 export const pullCommits = async (projectId: string) => {
   console.log("Fetching github url...");
-
   const { project, githubUrl } = await fetchProjectGithubUrl(projectId);
+
   console.log("pulling commit hashes from github...");
-
   const commitHashes = await getCommitHashes(githubUrl);
-  console.log("Filtering unprocessed commits...");
 
+  console.log("Filtering unprocessed commits...");
   const unprocessedCommits = await filterUnprocessedCommits(
     projectId,
     commitHashes,
   );
 
   console.log("checking if there aren't unprocessed commits...");
-
   if (unprocessedCommits.length == 0) {
+    console.log("No New Commits to process.");
     return [];
   }
   console.log(`There are ${unprocessedCommits.length} unprocessed commits.`);
   console.log("Summarising commits with ai...");
 
   const summariesResponses = await Promise.allSettled(
-    unprocessedCommits.map((commit, index) => {
-      console.log(`Processing Commit ${index + 1}...`);
-
-      return summariseCommit(githubUrl, commit.commitHash);
-    }),
+    unprocessedCommits.map((commit) =>
+      summariseCommit(githubUrl, commit.commitHash),
+    ),
   );
-  const summaries = summariesResponses.map((response) => {
-    if (response.status === "fulfilled") {
-      return response.value as string;
-    }
-
-    return "";
-  });
+  let summaries: string[] = [];
+  for (const commit of unprocessedCommits) {
+    console.log(`Processing commit ${commit.commitHash}...`);
+    const summary = await summariseCommit(githubUrl, commit.commitHash);
+    summaries.push(summary);
+  }
+  
 
   console.log("Saving commits in DB...");
 
@@ -105,17 +102,18 @@ export const pullCommits = async (projectId: string) => {
 };
 
 async function summariseCommit(githubUrl: string, commitHash: string) {
-  //get diff which will be passed to genAI
-  const { data } = await axios.get(`${githubUrl}/commit/${commitHash}.diff`, {
-    headers: {
-      Accept: "application/vnd.github.v3.diff",
-    },
-  });
-  const aiSummary = await aiSummariseCommit(data);
-  console.log("Summary: ", aiSummary);
+  try {
+    const { data } = await axios.get(`${githubUrl}/commit/${commitHash}.diff`, {
+      headers: { Accept: "application/vnd.github.v3.diff" },
+    });
 
-  return aiSummary || "";
+    return (await aiSummariseCommit(data)) || "";
+  } catch (error) {
+    console.error(`Failed to summarize commit ${commitHash}:`, error);
+    return "";
+  }
 }
+
 
 async function fetchProjectGithubUrl(projectId: string) {
   const project = await db.project.findUnique({

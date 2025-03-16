@@ -6,13 +6,13 @@ import { UserButton, useUser } from '@clerk/nextjs'
 import { ExternalLink, Github } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react'
+import CommitLog from './commit-log';
 
 function DashboardPage() {
     const { user } = useUser();
     const { selectedProject } = useProject();
   return (
     <div>
-      {selectedProject?.id}
         <div className="flex items-center justify-center md:justify-between flex-wrap gap-y-4">
           {/* Github Link */}
             <div className='flex items-center bg-primary w-fit text-white rounded-md px-4 py-2'>
@@ -49,7 +49,7 @@ function DashboardPage() {
         </div>
 
         <div className="mt-8">
-          CommitLog
+          <CommitLog/>
         </div>
     </div>
     
