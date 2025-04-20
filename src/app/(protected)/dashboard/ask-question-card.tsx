@@ -10,6 +10,9 @@ import { readStreamableValue } from 'ai/rsc';
 import MDEditor from '@uiw/react-md-editor';
 import { Loader2 } from 'lucide-react';
 import CodeReferences from './code-references';
+import { api } from '@/trpc/react';
+import { toast } from 'sonner';
+
 const AskQuestionCard = () => {
     const { selectedProject } = useProject();
     const [ openDialog, setOpenDialog ] = React.useState(false);
@@ -17,7 +20,8 @@ const AskQuestionCard = () => {
     const [ loading, setLoading ] = React.useState(false);
     const [ filesReferences, setFilesReferences ] = React.useState<{ fileName: string; summary: string; sourceCode: string }[]>([]);
     const [ answer, setAnswer ] = React.useState('');
-    
+    const saveAnswer = api.project.saveAnswer.useMutation();
+
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         setAnswer('');
         setFilesReferences([]);
@@ -44,9 +48,31 @@ const AskQuestionCard = () => {
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogContent className='sm:max-w-[80vw] d-flex flex-col items-center justify-center'>
                     <DialogHeader>
-                        <DialogTitle>
-                            <Image src='/logo.webp' alt='GitMind logo' width={40} height={40} />
-                        </DialogTitle>
+                        <div className="flex items-center gap-2">
+                            <DialogTitle>
+                                <Image src='/logo.webp' alt='GitMind logo' width={40} height={40} />
+                            </DialogTitle>
+                            <Button variant={'outline'} onClick={() => {
+                                saveAnswer.mutate(
+                                    { 
+                                        projectId: selectedProject?.id ?? "", 
+                                        question, 
+                                        answer, 
+                                        filesReferences 
+                                    }, {
+                                        onSuccess: () => {
+                                            toast.success('Answer saved successfully!');
+                                        },
+                                        onError: () => {
+                                            toast.error('Failed to save answer!');
+                                        }
+
+                                    }
+                                );
+                            }}>
+                                Save Answer!
+                            </Button>
+                        </div>
                     </DialogHeader>
 
                     <MDEditor.Markdown
