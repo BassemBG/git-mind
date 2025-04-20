@@ -32,6 +32,26 @@ console.log(await loadGithubRepo('https://github.com/BassemBG/java-crud-interfac
 export const indexGithubRepo = async (projectId: string, githubUrl: string, githubToken?: string) => {
   const docs = await loadGithubRepo(githubUrl, githubToken);
   const allEmbeddings = await generateEmbeddings(docs);
+  await Promise.allSettled(allEmbeddings.map(async (embedding, index) => {
+    console.log(`Processing file ${index + 1} of ${allEmbeddings.length}`);
+    if(!embedding) return;
+
+    const sourceCodeEmbedding = await db.sourceCodeEmbeddings.insert({
+      data: {
+        summary: embedding.summary,
+        sourceCode: embedding.sourceCode,
+        fileName: embedding.fileName,
+        projectId: projectId,
+      }
+    })
+
+    await db.$executeRaw`
+    UPDATE "sourceCodeEmbeddings"
+    SET "summaryEmbedding" = ${embedding.embedding}::vector
+    WHERE "id" = ${sourceCodeEmbedding.id} AND "projectId" = ${projectId}
+    `;
+    
+  }
 }
 
 const generateEmbeddings = async (docs: Document[]) => {
