@@ -5,15 +5,34 @@ import { Textarea } from '@/components/ui/textarea';
 import useProject from '@/hooks/use-project'
 import Image from 'next/image';
 import React from 'react'
+import { askQuestion } from './actions';
+import { readStreamableValue } from 'ai/rsc';
 
 const AskQuestionCard = () => {
-    const { project } = useProject();
+    const { selectedProject } = useProject();
     const [ openDialog, setOpenDialog ] = React.useState(false);
     const [ question, setQuestion ] = React.useState('');
-
+    const [ loading, setLoading ] = React.useState(false);
+    const [ filesReferences, setFilesReferences ] = React.useState<{ fileName: string; summary: string; sourceCode: string }[]>([]);
+    const [ answer, setAnswer ] = React.useState('');
+    
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!selectedProject?.id) return;
+        setLoading(true)
         setOpenDialog(true);
+
+        const { output, filesReferences } = await askQuestion(question, selectedProject.id);
+        setFilesReferences(filesReferences);
+
+        for await (const delta of readStreamableValue(output)) {
+            if (delta) {
+                setAnswer(ans => ans + delta);
+            }
+        }
+
+        setLoading(false);
+
     }
     return (
         <>
