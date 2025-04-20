@@ -9,6 +9,7 @@ import { askQuestion } from './actions';
 import { readStreamableValue } from 'ai/rsc';
 import MDEditor from '@uiw/react-md-editor';
 import { Loader2 } from 'lucide-react';
+import CodeReferences from './code-references';
 const AskQuestionCard = () => {
     const { selectedProject } = useProject();
     const [ openDialog, setOpenDialog ] = React.useState(false);
@@ -41,7 +42,7 @@ const AskQuestionCard = () => {
         <>
 
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                <DialogContent className='sm:max-w-[80vw]'>
+                <DialogContent className='sm:max-w-[80vw] d-flex flex-col items-center justify-center'>
                     <DialogHeader>
                         <DialogTitle>
                             <Image src='/logo.webp' alt='GitMind logo' width={40} height={40} />
@@ -50,9 +51,9 @@ const AskQuestionCard = () => {
 
                     <MDEditor.Markdown
                         source={answer}
-                        className='max-w-[70vw] !h-full max-h-[40vh] overflow-scroll'
+                        className='max-w-[70vw] !h-full max-h-[30vh] overflow-scroll'
                     />
-                    
+                    <CodeReferences filesReferences={filesReferences} />
                     <Button type='button' onClick={() => setOpenDialog(false)}>
                         Close
                     </Button>
