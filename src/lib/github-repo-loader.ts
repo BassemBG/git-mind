@@ -24,13 +24,6 @@ export const loadGithubRepo = async (
   return docs;
 };
 
-console.log(
-  await loadGithubRepo(
-    "https://github.com/BassemBG/java-crud-interface",
-    process.env.GITHUB_TOKEN,
-  ),
-);
-
 // Return type is array of Document:
 // Document {
 //     pageContent: "import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';\n\nimport { AppModule } from './app/app.module';\n\n\nplatformBrowserDynamic().bootstrapModule(AppModule)\n  .catch(err => console.error(err));\n",
@@ -63,7 +56,7 @@ export const indexGithubRepo = async (
       });
 
       await db.$executeRaw`
-    UPDATE "sourceCodeEmbeddings"
+    UPDATE "SourceCodeEmbedding"
     SET "summaryEmbedding" = ${embedding.embedding}::vector
     WHERE "id" = ${sourceCodeEmbedding.id} AND "projectId" = ${projectId}
     `;

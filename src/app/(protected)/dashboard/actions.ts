@@ -19,13 +19,14 @@ export async function askQuestion(question: string, projectId: string) {
     const result = await db.$queryRaw`
         SELECT "fileName", "summary", "sourceCode",
         1 - ("summaryEmbedding" <=> ${queryVector}::vector) AS "similarity"
-        FROM "sourceCodeEmbedding"
-        WHERE 1 - ("summaryEmbedding" <=> ${queryVector}::vector) > 0.5
+        FROM "SourceCodeEmbedding"
+        WHERE 1 - ("summaryEmbedding" <=> ${queryVector}::vector) > 0.2
         AND "projectId" = ${projectId}
         ORDER BY "similarity" DESC
         LIMIT 10;
     ` as { fileName: string; summary: string; sourceCode: string}[];
-
+    console.log("Similar files/vectors: ", result);
+    
     let context = '';
     for (const doc of result) {
         context += `Source: ${doc.fileName}\ncode content: ${doc.sourceCode}\nSummary of file: ${doc.summary}\n\n`;

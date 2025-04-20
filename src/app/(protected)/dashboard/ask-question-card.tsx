@@ -7,7 +7,8 @@ import Image from 'next/image';
 import React from 'react'
 import { askQuestion } from './actions';
 import { readStreamableValue } from 'ai/rsc';
-
+import MDEditor from '@uiw/react-md-editor';
+import { Loader2 } from 'lucide-react';
 const AskQuestionCard = () => {
     const { selectedProject } = useProject();
     const [ openDialog, setOpenDialog ] = React.useState(false);
@@ -17,12 +18,14 @@ const AskQuestionCard = () => {
     const [ answer, setAnswer ] = React.useState('');
     
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        setAnswer('');
+        setFilesReferences([]);
         e.preventDefault();
         if (!selectedProject?.id) return;
         setLoading(true)
-        setOpenDialog(true);
 
         const { output, filesReferences } = await askQuestion(question, selectedProject.id);
+        setOpenDialog(true);
         setFilesReferences(filesReferences);
 
         for await (const delta of readStreamableValue(output)) {
@@ -38,12 +41,25 @@ const AskQuestionCard = () => {
         <>
 
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                <DialogContent>
+                <DialogContent className='sm:max-w-[80vw]'>
                     <DialogHeader>
                         <DialogTitle>
                             <Image src='/logo.webp' alt='GitMind logo' width={40} height={40} />
                         </DialogTitle>
                     </DialogHeader>
+
+                    <MDEditor.Markdown
+                        source={answer}
+                        className='max-w-[70vw] !h-full max-h-[40vh] overflow-scroll'
+                    />
+                    
+                    <Button type='button' onClick={() => setOpenDialog(false)}>
+                        Close
+                    </Button>
+{/*                     
+                    {filesReferences.map((file) => {
+                        return <span> {file.fileName} </span>
+                    })} */}
                 </DialogContent>
             </Dialog>
 
@@ -55,17 +71,18 @@ const AskQuestionCard = () => {
                     <form onSubmit={onSubmit}>
                         <Textarea placeholder='eg. Which file should I edit to change the home page?' value={question} onChange={e => setQuestion(e.target.value)}/>
                         <div className="h-4"></div>
-                        <Button type='submit'>Ask GitMind!</Button>
+                        <Button type='submit' disabled={loading}>
+                            {loading && (
+                                <Loader2 className="animate-spin" />
+                            )}
+                            Ask GitMind!
+                        </Button>
                     </form>
                 </CardContent>
             </Card>
         </>
     )
 
-
-  return (
-    <div>ask-question-card</div>
-  )
 }
 
 export default AskQuestionCard
