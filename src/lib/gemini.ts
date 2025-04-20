@@ -68,19 +68,26 @@ It is given only as an example of appropriate comments.`,
 
 export async function summariseCode(doc: Document){
   console.log("getting summary for ", doc.metadata.source);
-  const code = doc.pageContent.slice(0, 10000); // Limit to 10000 characters so that i don't get thrown out of the API or exceed context
-  const response = await model.generateContent([
-    `You are an intelligent senior software engineer who specialises in onboarding unior software engineers onto projects.`,
-    `You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file.`,
-    `Here is the code:
-    ---
-    ${code}
-    ---
-    Give a summary no more than 100 words of the code above.
-    `,
-  ]);
 
-  return response.response.text();
+  //TODO: add quota management and error handling for the API calls
+  try {
+    const code = doc.pageContent.slice(0, 10000); // Limit to 10000 characters so that i don't get thrown out of the API or exceed context
+    const response = await model.generateContent([
+      `You are an intelligent senior software engineer who specialises in onboarding unior software engineers onto projects.`,
+      `You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file.`,
+      `Here is the code:
+      ---
+      ${code}
+      ---
+      Give a summary no more than 100 words of the code above.
+      `,
+    ]);
+  
+    return response.response.text();
+  
+  } catch(error){
+    return ''
+  }
 }
 
 
