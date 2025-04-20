@@ -2,6 +2,7 @@ import { GithubRepoLoader } from '@langchain/community/document_loaders/web/gith
 import { Document } from '@langchain/core/documents';
 import { generate } from 'node_modules/@langchain/core/dist/utils/fast-json-patch';
 import { generateEmbedding, summariseCode } from './gemini';
+import { db } from '@/server/db';
 export const loadGithubRepo = async (githubUrl: string, githubToken?: string) => {
   const loader = new GithubRepoLoader(githubUrl, {
     accessToken: githubToken || '',
@@ -36,7 +37,7 @@ export const indexGithubRepo = async (projectId: string, githubUrl: string, gith
     console.log(`Processing file ${index + 1} of ${allEmbeddings.length}`);
     if(!embedding) return;
 
-    const sourceCodeEmbedding = await db.sourceCodeEmbeddings.insert({
+    const sourceCodeEmbedding = await db.sourceCodeEmbedding.create({
       data: {
         summary: embedding.summary,
         sourceCode: embedding.sourceCode,
