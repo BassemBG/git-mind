@@ -1,4 +1,7 @@
 import { GithubRepoLoader } from '@langchain/community/document_loaders/web/github'
+import { Document } from '@langchain/core/documents';
+import { generate } from 'node_modules/@langchain/core/dist/utils/fast-json-patch';
+import { generateEmbedding, summariseCode } from './gemini';
 export const loadGithubRepo = async (githubUrl: string, githubToken?: string) => {
   const loader = new GithubRepoLoader(githubUrl, {
     accessToken: githubToken || '',
@@ -12,7 +15,7 @@ export const loadGithubRepo = async (githubUrl: string, githubToken?: string) =>
   return docs;
 }
 
-console.log(await loadGithubRepo('https://github.com/PathyTK/pathy-web', process.env.GITHUB_TOKEN));
+console.log(await loadGithubRepo('https://github.com/BassemBG/java-crud-interface', process.env.GITHUB_TOKEN));
 
 
 // Return type is array of Document:
@@ -24,3 +27,23 @@ console.log(await loadGithubRepo('https://github.com/PathyTK/pathy-web', process
 //       branch: "main",
 //     },
 //     id: undefined,
+
+
+export const indexGithubRepo = async (projectId: string, githubUrl: string, githubToken?: string) => {
+  const docs = await loadGithubRepo(githubUrl, githubToken);
+  const allEmbeddings = await generateEmbeddings(docs);
+}
+
+const generateEmbeddings = async (docs: Document[]) => {
+  return await Promise.all(docs.map(async (doc) => {
+    const summary = await summariseCode(doc);
+    const embedding = await generateEmbedding(summary);
+    return {
+      summary,
+      embedding,
+      sourceCode: JSON.parse(JSON.stringify(doc.pageContent)),
+      fileName: doc.metadata.source,
+    }
+  }));
+
+}
