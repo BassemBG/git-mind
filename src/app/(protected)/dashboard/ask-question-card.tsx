@@ -52,10 +52,10 @@ const AskQuestionCard = () => {
                             <DialogTitle>
                                 <Image src='/logo.webp' alt='GitMind logo' width={40} height={40} />
                             </DialogTitle>
-                            <Button variant={'outline'} onClick={() => {
+                            <Button disabled={saveAnswer.isPending} variant={'outline'} onClick={() => {
                                 saveAnswer.mutate(
                                     { 
-                                        projectId: selectedProject?.id ?? "", 
+                                        projectId: selectedProject!.id, 
                                         question, 
                                         answer, 
                                         filesReferences 
